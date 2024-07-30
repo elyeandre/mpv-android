@@ -1096,11 +1096,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         if (useIntentFile) {
             intentExtrasFile.writeText(intentOptions.joinToString("\n") { "${it.first}=${it.second}" })
         }
-        extras.getString("title", "").let {
-            if (!it.isNullOrEmpty())
-                pushOption("force-media-title", it)
-        }
-        // TODO: `headers` would be good, maybe `tls_verify`
+        
     }
 
     // UI (Part 2)
