@@ -316,7 +316,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         }
 
         player.addObserver(this)
-        player.initialize(filesDir.path, cacheDir.path, filesDir.path + "/intentExtras.conf", cliOptions, useIntentFile)
+        player.initialize(filesDir.path, cacheDir.path, filesDir.path + "/intentExtras.conf", cliOptions, useIntentFile, showMediaTitle)
         player.playFile(filepath)
 
         binding.playbackSeekbar.setOnSeekBarChangeListener(seekBarChangeListener)
