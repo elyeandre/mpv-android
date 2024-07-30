@@ -35,7 +35,7 @@ abstract class BaseMPVView(context: Context, attrs: AttributeSet) : SurfaceView(
             }
             Log.v(TAG, "'''cli options end'''")
         }
-        Log.v(TAG, "ShowMediaTitle", showMediaTitle)
+        Log.v(TAG, "ShowMediaTitle: $showMediaTitle")
         /* set hardcoded options */
         postInitOptions()
         // would crash before the surface is attached
