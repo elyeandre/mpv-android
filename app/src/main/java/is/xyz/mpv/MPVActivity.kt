@@ -105,8 +105,8 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
             if (!fromUser)
                 return
-            player.timePos = progress
-            updatePlaybackPos(progress)
+            player.timePos = progress.toDouble() / SEEK_BAR_PRECISION
+            // Note: don't call updatePlaybackPos() here either
         }
 
         override fun onStartTrackingTouch(seekBar: SeekBar) {
@@ -517,10 +517,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             Log.v(TAG, "Resuming playback in background")
             stopServiceHandler.removeCallbacks(stopServiceRunnable)
             val serviceIntent = Intent(this, BackgroundPlaybackService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                startForegroundService(serviceIntent)
-            else
-                startService(serviceIntent)
+            ContextCompat.startForegroundService(this, serviceIntent)
         }
     }
 
@@ -1034,24 +1031,28 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         if (extras == null)
             return
 
+        fun pushOption(key: String, value: String) {
+            onloadCommands.add(arrayOf("set", "file-local-options/${key}", value))
+        }
+
         // Refer to http://mpv-android.github.io/mpv-android/intent.html
         if (extras.getByte("decode_mode") == 2.toByte())
-            onloadCommands.add(arrayOf("set", "file-local-options/hwdec", "no"))
+            pushOption("hwdec", "no")
         if (extras.containsKey("subs")) {
-            val subList = extras.getParcelableArray("subs")?.mapNotNull { it as? Uri } ?: emptyList()
-            val subsToEnable = extras.getParcelableArray("subs.enable")?.mapNotNull { it as? Uri } ?: emptyList()
+            val subList = Utils.getParcelableArray<Uri>(extras, "subs")
+            val subsToEnable = Utils.getParcelableArray<Uri>(extras, "subs.enable")
 
             for (suburi in subList) {
                 val subfile = resolveUri(suburi) ?: continue
-                val flag = if (subsToEnable.filter { it.compareTo(suburi) == 0 }.any()) "select" else "auto"
+                val flag = if (subsToEnable.any { it == suburi }) "select" else "auto"
 
                 Log.v(TAG, "Adding subtitles from intent extras: $subfile")
                 onloadCommands.add(arrayOf("sub-add", subfile, flag))
             }
         }
-        if (extras.getInt("position", 0) > 0) {
-            val pos = extras.getInt("position", 0) / 1000f
-            onloadCommands.add(arrayOf("set", "start", pos.toString()))
+        extras.getInt("position", 0).let {
+            if (it > 0)
+                pushOption("start", "${it / 1000f}")
         }
 
         // pass every string key that starts with -- to mpv
@@ -1095,6 +1096,11 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         if (useIntentFile) {
             intentExtrasFile.writeText(intentOptions.joinToString("\n") { "${it.first}=${it.second}" })
         }
+        extras.getString("title", "").let {
+            if (!it.isNullOrEmpty())
+                pushOption("force-media-title", it)
+        }
+        // TODO: `headers` would be good, maybe `tls_verify`
     }
 
     // UI (Part 2)
@@ -1609,7 +1615,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 Utils.prettyTime(-diff, true)
         }
         if (!userIsOperatingSeekbar)
-            binding.playbackSeekbar.progress = position
+            binding.playbackSeekbar.progress = position * SEEK_BAR_PRECISION
 
         // Note: do NOT add other update functions here just because this is called every second.
         // Use property observation instead.
@@ -1620,7 +1626,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         if (!useTimeRemaining)
             binding.playbackDurationTxt.text = Utils.prettyTime(duration)
         if (!userIsOperatingSeekbar)
-            binding.playbackSeekbar.max = duration
+            binding.playbackSeekbar.max = duration * SEEK_BAR_PRECISION
     }
 
     private fun updatePlaybackStatus(paused: Boolean) {
@@ -1742,7 +1748,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 player.paused = false
             }
             override fun onSeekTo(pos: Long) {
-                player.timePos = (pos / 1000).toInt()
+                player.timePos = (pos / 1000.0)
             }
             override fun onSkipToNext() = playlistNext()
             override fun onSkipToPrevious() = playlistPrev()
@@ -1767,17 +1773,15 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
 
     // mpv events
 
-    private fun eventPropertyUi(property: String) {
+    private fun eventPropertyUi(property: String, dummy: Any?, metaUpdated: Boolean) {
         if (!activityIsForeground) return
         when (property) {
             "track-list" -> player.loadTracks()
-            "video-params/aspect", "video-params/rotate" -> {
-                updateOrientation()
-                updatePiPParams()
-            }
             "video-format" -> updateAudioUI()
             "hwdec-current" -> updateDecoderButton()
         }
+        if (metaUpdated)
+            updateMetadataDisplay()
     }
 
     private fun eventPropertyUi(property: String, value: Boolean) {
@@ -1790,18 +1794,28 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     private fun eventPropertyUi(property: String, value: Long) {
         if (!activityIsForeground) return
         when (property) {
-            "time-pos" -> updatePlaybackPos(value.toInt())
-            "duration" -> updatePlaybackDuration(value.toInt())
+            "time-pos" -> updatePlaybackPos(psc.positionSec)
             "playlist-pos", "playlist-count" -> updatePlaylistButtons()
         }
     }
 
-    private fun eventPropertyUi(property: String, value: String, triggerMetaUpdate: Boolean) {
+    private fun eventPropertyUi(property: String, value: Double) {
+        if (!activityIsForeground) return
+        when (property) {
+            "duration/full" -> updatePlaybackDuration(psc.durationSec)
+            "video-params/aspect", "video-params/rotate" -> {
+                updateOrientation()
+                updatePiPParams()
+            }
+        }
+    }
+
+    private fun eventPropertyUi(property: String, value: String, metaUpdated: Boolean) {
         if (!activityIsForeground) return
         when (property) {
             "speed" -> updateSpeedButton()
         }
-        if (triggerMetaUpdate)
+        if (metaUpdated)
             updateMetadataDisplay()
     }
 
@@ -1811,6 +1825,9 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     }
 
     override fun eventProperty(property: String) {
+        val metaUpdated = psc.update(property)
+        if (metaUpdated)
+            updateMediaSession()
         if (property == "loop-file" || property == "loop-playlist") {
             mediaSession?.setRepeatMode(when (player.getRepeat()) {
                 2 -> PlaybackStateCompat.REPEAT_MODE_ONE
@@ -1820,7 +1837,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         }
 
         if (!activityIsForeground) return
-        eventUiHandler.post { eventPropertyUi(property) }
+        eventUiHandler.post { eventPropertyUi(property, null, metaUpdated) }
     }
 
     override fun eventProperty(property: String, value: Boolean) {
@@ -1845,13 +1862,21 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         eventUiHandler.post { eventPropertyUi(property, value) }
     }
 
-    override fun eventProperty(property: String, value: String) {
-        val triggerMetaUpdate = psc.update(property, value)
-        if (triggerMetaUpdate)
+    override fun eventProperty(property: String, value: Double) {
+        if (psc.update(property, value))
             updateMediaSession()
 
         if (!activityIsForeground) return
-        eventUiHandler.post { eventPropertyUi(property, value, triggerMetaUpdate) }
+        eventUiHandler.post { eventPropertyUi(property, value) }
+    }
+
+    override fun eventProperty(property: String, value: String) {
+        val metaUpdated = psc.update(property, value)
+        if (metaUpdated)
+            updateMediaSession()
+
+        if (!activityIsForeground) return
+        eventUiHandler.post { eventPropertyUi(property, value, metaUpdated) }
     }
 
     override fun event(eventId: Int) {
@@ -1875,11 +1900,12 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
 
     // Gesture handler
 
-    private var initialSeek = 0
+    private var initialSeek = 0f
     private var initialBright = 0f
     private var initialVolume = 0
     private var maxVolume = 0
-    private var pausedForSeek = 0 // 0 = initial, 1 = paused, 2 = was already paused
+    /** 0 = initial, 1 = paused, 2 = was already paused */
+    private var pausedForSeek = 0
 
     private fun fadeGestureText() {
         fadeHandler.removeCallbacks(fadeRunnable3)
@@ -1895,7 +1921,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             PropertyChange.Init -> {
                 mightWantToToggleControls = false
 
-                initialSeek = psc.positionSec
+                initialSeek = (psc.position / 1000f)
                 initialBright = Utils.getScreenBrightness(this) ?: 0.5f
                 with (audioManager!!) {
                     initialVolume = getStreamVolume(STREAM_TYPE)
@@ -1912,8 +1938,8 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             }
             PropertyChange.Seek -> {
                 // disable seeking when duration is unknown
-                val duration = psc.durationSec
-                if (duration == 0 || initialSeek < 0)
+                val duration = (psc.duration / 1000f)
+                if (duration == 0f || initialSeek < 0)
                     return
                 if (smoothSeekGesture && pausedForSeek == 0) {
                     pausedForSeek = if (psc.pause) 2 else 1
@@ -1921,18 +1947,21 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                         player.paused = true
                 }
 
-                val newPos = (initialSeek + diff.toInt()).coerceIn(0, duration)
-                val newDiff = newPos - initialSeek
+                val newPosExact = (initialSeek + diff).coerceIn(0f, duration)
+                val newPos = newPosExact.roundToInt()
+                val newDiff = (newPosExact - initialSeek).roundToInt()
                 if (smoothSeekGesture) {
-                    player.timePos = newPos // (exact seek)
+                    player.timePos = newPosExact.toDouble() // (exact seek)
                 } else {
                     // seek faster than assigning to timePos but less precise
-                    MPVLib.command(arrayOf("seek", newPos.toString(), "absolute+keyframes"))
+                    MPVLib.command(arrayOf("seek", "$newPosExact", "absolute+keyframes"))
                 }
-                updatePlaybackPos(newPos)
+                // Note: don't call updatePlaybackPos() here because mpv will seek a timestamp
+                // actually present in the file, and not the exact one we specified.
 
+                val posText = Utils.prettyTime(newPos)
                 val diffText = Utils.prettyTime(newDiff, true)
-                gestureTextView.text = getString(R.string.ui_seek_distance, Utils.prettyTime(newPos), diffText)
+                gestureTextView.text = getString(R.string.ui_seek_distance, posText, diffText)
             }
             PropertyChange.Volume -> {
                 if (maxVolume == 0)
@@ -1995,5 +2024,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         private const val RESULT_INTENT = "is.xyz.mpv.MPVActivity.result"
         // stream type used with AudioManager
         private const val STREAM_TYPE = AudioManager.STREAM_MUSIC
+        // precision used by seekbar (1/s)
+        private const val SEEK_BAR_PRECISION = 2
     }
 }

@@ -1,144 +1,265 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Intent specification</title>
-	<link href="default.css" rel="stylesheet">
-</head>
-<body>
-	<h2 id="intent">Intent</h2>
+  <head>
+    <title>Intent specification</title>
+    <link href="default.css" rel="stylesheet" />
+  </head>
+  <body>
+    <h2 id="intent">Intent</h2>
 
-	<p>You can use an intent to directly launch the player of mpv-android.</p>
+    <p>You can use an intent to directly launch the player of mpv-android.</p>
 
-	<p>package: <code>is.xyz.mpv</code><br>
-	action: <code>android.intent.action.VIEW</code></p>
-	<ul>
-		<li>
-			data: URI with scheme <code>rtmp, rtmps, rtp, rtsp, mms, mmst, mmsh, tcp, udp</code>
-			(as supported by <a href="https://ffmpeg.org/ffmpeg-protocols.html" target="_blank" rel="noopener">FFmpeg</a>)<br>
-			<i>or</i>
-		</li>
-		<li>
-			data: URI with scheme <code>content, file, http, https</code><br>
-			type: <code>video/*</code> or <code>audio/*</code><br>
-			<i>or</i>
-		</li>
-		<li>
-			data: URI with scheme <code>http, https</code> and file extension <code>mkv, mp4, webm, mov, flac, mp3, ogg, m3u, m3u8</code><br>
-		</li>
-	</ul>
-	<p>If you need to force an URL to be opened in mpv regardless of the file
-	extension set the MIME type to <code>video/any</code>.<br>
-	extras: <i>(optional)</i></p>
-	<p style="margin-left: 1rem;">MX Player-like options:</p>
-	<ul>
-		<li>
-			<code>decode_mode</code> (Byte): if set to 2, hardware decoding will be disabled
-		</li>
-		<li>
-			<code>subs</code> (ParcelableArray of Uri): list of subtitle URIs to be added as additional tracks
-		</li>
-		<li>
-			<code>subs.enable</code> (ParcelableArray of Uri): specifies which of the subtitles should be selected by default, subset of previous array
-		</li>
-		<li>
-			<code>position</code> (Int): starting point of video playback in milliseconds
-		</li>
-	</ul>
+    <p>
+      package:
+      <code>is.xyz.mpv</code>
+      <br />
+      action:
+      <code>android.intent.action.VIEW</code>
+    </p>
+    <ul>
+      <li>
+        data: URI with scheme
+        <code>rtmp, rtmps, rtp, rtsp, mms, mmst, mmsh, tcp, udp</code>
+        (as supported by
+        <a href="https://ffmpeg.org/ffmpeg-protocols.html" target="_blank" rel="noopener">FFmpeg</a>
+        )
+        <br />
+        <i>or</i>
+      </li>
+      <li>
+        data: URI with scheme
+        <code>content, file, http, https</code>
+        <br />
+        type:
+        <code>video/*</code>
+        or
+        <code>audio/*</code>
+        <br />
+        <i>or</i>
+      </li>
+      <li>
+        data: URI with scheme
+        <code>http, https</code>
+        and file extension
+        <code>mkv, mp4, webm, mov, flac, mp3, ogg, m3u, m3u8</code>
+        <br />
+      </li>
+    </ul>
+    <p>
+      If you need to force an URL to be opened in mpv regardless of the file extension set the MIME type to
+      <code>video/any</code>
+      .
+      <br />
+      extras:
+      <i>(optional)</i>
+    </p>
+    <p style="margin-left: 1rem">MX Player-like options:</p>
+    <ul>
+      <li>
+        <code>decode_mode</code>
+        (Byte): if set to 2, hardware decoding will be disabled
+      </li>
+      <li>
+        <code>subs</code>
+        (ParcelableArray of Uri): list of subtitle URIs to be added as additional tracks
+      </li>
+      <li>
+        <code>subs.enable</code>
+        (ParcelableArray of Uri): specifies which of the subtitles should be selected by default, subset of previous
+        array
+      </li>
+      <li>
+        <code>position</code>
+        (Int): starting point of video playback in milliseconds
+      </li>
+      <li>
+        <code>title</code>
+        (String): media title to show for this file
+      </li>
+    </ul>
 
-	<p style="margin-left: 1rem;">
-		mpv options: <br>
-		*no-flag option syntax is not supported. Use, for example, resume-playback=no instead of no-resume-playback
-	</p>
-	<ul>
-		<li>
-			<code>--sub-file</code> (String): [<a href="https://mpv.io/manual/master/#options-sub-file">manual</a>] add one subtitle file to the list of external subtitles. This subtitle file is displayed by default <br>
-			*Due to how android intents work, using this option multiple times will just overwrite its value
-		</li>
-		<li>
-			<code>--sub-files</code> (String): [<a href="https://mpv.io/manual/master/#options-sub-files">manual</a>] add multiple subtitle files separated by <code>:</code> <br>
-			*Playback will not start until all subtitle files are fetched, adding a lot of subtitle URLs may cause a significant delay
-		</li>
-		<li>
-			<code>--http-header-fields</code> (String): [<a href="https://mpv.io/manual/master/#options-http-header-fields">manual</a>] set custom HTTP fields when accessing HTTP stream. Fields are separated by commas <br>
-			*Escape commas inside a field's value with a backslash
-		</li>
-		<li>
-			<code>--user-agent</code> (String): [<a href="https://mpv.io/manual/master/#options-user-agent">manual</a>] specify user agent for HTTP streaming
-		</li>
-		<li>
-			<code>--referrer</code> (String): [<a href="https://mpv.io/manual/master/#options-referrer">manual</a>] specify a referrer path or URL for HTTP requests
-		</li>
-		<li>
-			<code>--media-title</code>,<code>force-media-title</code> (String): [<a href="https://mpv.io/manual/master/#options-force-media-title">manual</a>] set a custom title <br>
-			*Because it's common among android players, you can also use <code>title</code>
-		</li>
-		<li>
-			<code>--tls-verify</code> (String): [<a href="https://mpv.io/manual/master/#options-tls-verify">manual</a>] verify peer certificates when using TLS
-		</li>
-		
-		<li>
-			<code>--resume-playback</code> (String): [<a href="https://mpv.io/manual/master/#options-no-resume-playback">manual</a>] specify if playback time should be resotred. 
-		</li>
-		<li>
-			<code>--force-seekable</code> (String): [<a href="https://mpv.io/manual/master/#options-force-seekable">manual</a>] 
-			If the player thinks that the media is not seekable (e.g. playing from a pipe,or it's an http stream with a server that doesn't support range requests), seeking will be disabled. This option can forcibly enable it. For seeks within the cache, there's a good chance of success.
-		</li>
-		<li>
-			<code>--cookies</code> (String): [<a href="https://mpv.io/manual/master/#options-cookies">manual</a>] support cookies when making HTTP requests. Disabled by default.
-		</li>
-	</ul>
+    <p style="margin-left: 1rem">
+      mpv options:
+      <br />
+      *no-flag option syntax is not supported. Use, for example, resume-playback=no instead of no-resume-playback
+    </p>
+    <ul>
+      <li>
+        <code>--sub-file</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-sub-file">manual</a>
+        ] add one subtitle file to the list of external subtitles. This subtitle file is displayed by default
+        <br />
+        *Due to how android intents work, using this option multiple times will just overwrite its value
+      </li>
+      <li>
+        <code>--sub-files</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-sub-files">manual</a>
+        ] add multiple subtitle files separated by
+        <code>:</code>
+        <br />
+        *Playback will not start until all subtitle files are fetched, adding a lot of subtitle URLs may cause a
+        significant delay
+      </li>
+      <li>
+        <code>--http-header-fields</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-http-header-fields">manual</a>
+        ] set custom HTTP fields when accessing HTTP stream. Fields are separated by commas
+        <br />
+        *Escape commas inside a field's value with a backslash
+      </li>
+      <li>
+        <code>--user-agent</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-user-agent">manual</a>
+        ] specify user agent for HTTP streaming
+      </li>
+      <li>
+        <code>--referrer</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-referrer">manual</a>
+        ] specify a referrer path or URL for HTTP requests
+      </li>
+      <li>
+        <code>--media-title</code>
+        ,
+        <code>force-media-title</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-force-media-title">manual</a>
+        ] set a custom title
+        <br />
+        *Because it's common among android players, you can also use
+        <code>title</code>
+      </li>
+      <li>
+        <code>--tls-verify</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-tls-verify">manual</a>
+        ] verify peer certificates when using TLS
+      </li>
 
-	<details>
-		<summary>Examples</summary>
-		<div style="margin-left: 1em;">
-		<p>
-			<a href="https://github.com/k3b/intent-intercept">Intent Intercept</a> and <a href="https://github.com/MuntashirAkon/AppManager">AppManager</a>'s <a href="https://muntashirakon.github.io/AppManager/en/#sec:interceptor-page">interceptor</a> option are useful for debugging on android
-		</p>
-		<h5>Kotlin</h5>
-		<pre>val intent = Intent(Intent.ACTION_VIEW)
+      <li>
+        <code>--resume-playback</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-no-resume-playback">manual</a>
+        ] specify if playback time should be resotred.
+      </li>
+      <li>
+        <code>--force-seekable</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-force-seekable">manual</a>
+        ] If the player thinks that the media is not seekable (e.g. playing from a pipe,or it's an http stream with a
+        server that doesn't support range requests), seeking will be disabled. This option can forcibly enable it. For
+        seeks within the cache, there's a good chance of success.
+      </li>
+      <li>
+        <code>--cookies</code>
+        (String): [
+        <a href="https://mpv.io/manual/master/#options-cookies">manual</a>
+        ] support cookies when making HTTP requests. Disabled by default.
+      </li>
+    </ul>
+
+    <details>
+      <summary>Examples</summary>
+      <div style="margin-left: 1em">
+        <p>
+          <a href="https://github.com/k3b/intent-intercept">Intent Intercept</a>
+          and
+          <a href="https://github.com/MuntashirAkon/AppManager">AppManager</a>
+          's
+          <a href="https://muntashirakon.github.io/AppManager/en/#sec:interceptor-page">interceptor</a>
+          option are useful for debugging on android
+        </p>
+        <h5>Kotlin</h5>
+        <pre>
+val intent = Intent(Intent.ACTION_VIEW)
 intent.setDataAndType(Uri.parse("https://example.org/media.png"), "video/any")
 intent.setPackage("is.xyz.mpv")
-startActivity(intent)</pre>
-		<h5>HTML (Chrome)</h5>
-		<pre>&lt;a href="intent://example.org/media.png#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;"&gt;Click me&lt;/a&gt;</pre>
-		<pre>// you must urlencode ";" (to "%3b") when it's not used to separate elements in the intent uri syntax
+val subtitle = Uri.parse("https://example.org/subtitle.srt")
+intent.putExtra("subs", arrayOf&lt;Uri&gt;(subtitle))
+startActivity(intent)</pre
+        >
+        <h5>HTML (Chrome)</h5>
+        <pre>
+&lt;a href="intent://example.org/media.png#Intent;type=video/any;package=is.xyz.mpv;scheme=https;end;"&gt;Click me&lt;/a&gt;</pre
+        >
+        <pre>
+// you must urlencode ";" (to "%3b") when it's not used to separate elements in the intent uri syntax
 // you need 2 backslashes or one urlencoded backslash to escape characters inside a field's value
 var a = document.createElement("a"),
     string = "intent://example/vid.mp4#Intent;scheme=https;type=video/any;S.--sub-file=https://test/en.vtt;S.--sub-files=https\\://test/ita.vtt:https\\://test/fra.vtt;S.--referrer=https://test;S.--tls-verify=no;S.title=my title;S.--user-agent=Mozilla/5.0 (Linux%3b Android 10%3b device) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36;S.--http-header-fields=Accept-Language: en-GB\\,en%3bq=0.5;end"
 a.href = string
-a.click()</pre>
-		<pre>// you can also urlencode all the values
+a.click()</pre
+        >
+        <pre>
+// you can also urlencode all the values
 var a = document.createElement("a"),
     string = "intent://example/vid.mp4#Intent;scheme=https;type=video/any;S.--sub-file=https%3A%2F%2Ftest%2Fen.vtt;S.--sub-files=https%5C%3A%2F%2Ftest%2Fita.vtt%3Ahttps%5C%3A%2F%2Ftest%2Ffra.vtt;S.--referrer=https%3A%2F%2Ftest;S.--tls-verify=no;S.title=my%20title;S.--user-agent=Mozilla%2F5.0%20(Linux%3B%20Android%2010%3B%20device)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F107.0.0.0%20Mobile%20Safari%2F537.36;S.--http-header-fields=Accept-Language%3A%20en-GB%5C%2Cen%3Bq%3D0.5;end"
 a.href = string
-a.click()</pre>
-			<p>you can play around with intent URIs in android using <a href="https://github.com/kiwibrowser/src.next">Kiwi Browser</a>'s dev tools</p>
-		<h5>Command line (e.g. adb or Termux)</h5>
-		<pre>am start -a android.intent.action.VIEW -t video/any -p is.xyz.mpv -d "https://example.org/media.png" </pre>
-		<pre>am start -a android.intent.action.VIEW -t video/any -d https://example/vid.mp4 --es title "my title" --es --sub-file "https://test/en.vtt" --es --sub-files "https\://test/ita.vtt:https\://test/fra.vtt" --es --http-header-fields "Accept-Language: en-GB\,en;q=0.5" --es --user-agent "Mozilla/5.0 (Linux; Android 10; device) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36" --es --referrer "https://test" --es --tls-verify no
-		</pre>
-		</div>
-	</details>
+a.click()</pre
+        >
+        <p>
+          you can play around with intent URIs in android using
+          <a href="https://github.com/kiwibrowser/src.next">Kiwi Browser</a>
+          's dev tools
+        </p>
+        <h5>Command line (e.g. adb or Termux)</h5>
+        <pre>am start -a android.intent.action.VIEW -t video/any -p is.xyz.mpv -d "https://example.org/media.png" </pre>
+        <pre>
+am start -a android.intent.action.VIEW -t video/any -d https://example/vid.mp4 --es title "my title" --es --sub-file "https://test/en.vtt" --es --sub-files "https\://test/ita.vtt:https\://test/fra.vtt" --es --http-header-fields "Accept-Language: en-GB\,en;q=0.5" --es --user-agent "Mozilla/5.0 (Linux; Android 10; device) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36" --es --referrer "https://test" --es --tls-verify no
+		</pre
+        >
+      </div>
+    </details>
 
-	<h2 id="result-intent">Result Intent</h2>
+    <h2 id="result-intent">Result Intent</h2>
 
-	<p>Once the activity exits mpv-android will deliver a result intent back to the invoker.<br>
-	action: <code>is.xyz.mpv.MPVActivity.result</code><br>
-	code:</p>
-	<ul>
-		<li><code>RESULT_CANCELED</code>: playback did not start due to an error</li>
-		<li><code>RESULT_OK</code>: playback ended normally or user exited</li>
-	</ul>
-	<p>data: the same URI mpv was launched with<br>
-	extras:</p>
-	<ul>
-		<li><code>position</code> (Int): last playback position in milliseconds. not present if playback finished normally</li>
-		<li><code>duration</code> (Int): total media length in milliseconds. not present if playback finished normally</li>
-	</ul>
+    <p>
+      Once the activity exits mpv-android will deliver a result intent back to the invoker.
+      <br />
+      action:
+      <code>is.xyz.mpv.MPVActivity.result</code>
+      <br />
+      code:
+    </p>
+    <ul>
+      <li>
+        <code>RESULT_CANCELED</code>
+        : playback did not start due to an error
+      </li>
+      <li>
+        <code>RESULT_OK</code>
+        : playback ended normally or user exited
+      </li>
+    </ul>
+    <p>
+      data: the same URI mpv was launched with
+      <br />
+      extras:
+    </p>
+    <ul>
+      <li>
+        <code>position</code>
+        (Int): last playback position in milliseconds. not present if playback finished normally
+      </li>
+      <li>
+        <code>duration</code>
+        (Int): total media length in milliseconds. not present if playback finished normally
+      </li>
+    </ul>
 
-	<h2 id="notes">Notes</h2>
+    <h2 id="notes">Notes</h2>
 
-	<p>This API was inspired by the counterpart in <a href="https://mx.j2inter.com/api" target="_blank" rel="noopener">MXPlayer</a>.<br>
-	Note that only Java code is powerful enough to use the full features of this specification or receive result intents.</p>
-</body>
+    <p>
+      This API was inspired by the counterpart in
+      <a href="https://mx.j2inter.com/api" target="_blank" rel="noopener">MXPlayer</a>
+      .
+      <br />
+      Note that only Java code is powerful enough to use the full features of this specification or receive result
+      intents.
+    </p>
+  </body>
 </html>
