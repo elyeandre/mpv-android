@@ -281,9 +281,14 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
         initListeners()
 
         gestures = TouchGestures(this)
-
+       
         // set up initial UI state
         readSettings()
+
+         // Override showMediaTitle based on intent extra
+        intent.extras?.getBoolean("show_media_title", false)?.let { value ->
+        showMediaTitle = value
+        }
         onConfigurationChanged(resources.configuration)
         run {
             // edge-to-edge & immersive mode
