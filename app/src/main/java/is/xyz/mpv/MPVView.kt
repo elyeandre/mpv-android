@@ -236,7 +236,7 @@ internal class MPVView(context: Context, attrs: AttributeSet) : BaseMPVView(cont
                 context.getString(R.string.ui_track, mpvId)
             tracks.getValue(type).add(Track(
                     mpvId=mpvId,
-                    name=trackName
+                    name="Test"
             ))
         }
     }
