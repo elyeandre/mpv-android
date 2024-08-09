@@ -62,6 +62,8 @@ abstract class BaseMPVView(context: Context, attrs: AttributeSet) : SurfaceView(
     protected abstract fun initOptions()
     protected abstract fun postInitOptions()
 
+    protected abstract fun setTrackNames(trackNames: List<String>)
+
     protected abstract fun observeProperties()
 
     private var filePath: String? = null
