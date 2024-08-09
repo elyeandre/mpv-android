@@ -92,7 +92,7 @@ internal class SubTrackDialog(private val player: MPVView) {
 
             fun bind(track: MPVView.Track, checked: Boolean, disabled: Boolean) {
                 with (textView) {
-                    text = track.name
+                    text = "test2"
                     isChecked = checked
                     isEnabled = !disabled
                 }
