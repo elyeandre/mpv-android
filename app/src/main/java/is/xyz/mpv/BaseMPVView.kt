@@ -14,7 +14,7 @@ abstract class BaseMPVView(context: Context, attrs: AttributeSet) : SurfaceView(
      *
      * Call this once before the view is shown.
      */
-    fun initialize(configDir: String, cacheDir: String, intentExtrasFile: String, cliOptions: MutableList<Pair<String, String>>, useIntentFile: Boolean, showMediaTitle: Boolean) {
+    fun initialize(configDir: String, cacheDir: String, intentExtrasFile: String, cliOptions: MutableList<Pair<String, String>>, useIntentFile: Boolean, showMediaTitle: Boolean,  trackNames: MutableList<String>) {
         MPVLib.create(context)
 
         /* set normal options (user-supplied config can override) */
@@ -37,6 +37,7 @@ abstract class BaseMPVView(context: Context, attrs: AttributeSet) : SurfaceView(
         }
         Log.v(TAG, "ShowMediaTitle: $showMediaTitle")
         /* set hardcoded options */
+        setTrackNames(trackNames)
         postInitOptions()
         // would crash before the surface is attached
         MPVLib.setOptionString("force-window", "no")
