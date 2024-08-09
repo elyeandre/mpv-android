@@ -12,6 +12,13 @@ import `is`.xyz.mpv.MPVLib.mpvFormat.*
 import kotlin.reflect.KProperty
 
 internal class MPVView(context: Context, attrs: AttributeSet) : BaseMPVView(context, attrs) {
+    private var trackNames = listOf<String>()
+    
+    override fun setTrackNames(trackNames: List<String>) {
+        this.trackNames = trackNames
+        Log.v(TAG, "Track names set: $trackNames")
+    }
+    
     override fun initOptions() {
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
