@@ -79,7 +79,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     private var rentryCookie = "" // urlencode this if using intent url
     private var rentryExternalID = "" // just received from intent and passed back in the rentry post
 
-    private var trackNames = listOf<String>()
+    private var trackNames = mutableListOf<String>()
     /**
      * DO NOT USE THIS
      */
@@ -340,7 +340,6 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
 
         player.addObserver(this)
         player.initialize(filesDir.path, cacheDir.path, filesDir.path + "/intentExtras.conf", cliOptions, useIntentFile, showMediaTitle)
-        player.setTrackNames(trackNames)
         player.playFile(filepath)
 
         mediaSession = initMediaSession()
@@ -1079,7 +1078,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 pushOption("start", "${it / 1000f}")
         }
         // get all the track names if available
-        trackNames = extras.getString("track-names")?.split(",")?.map { it.trim() } ?: emptyList()
+        trackNames = extras.getString("track-names")?.split(",")?.map { it.trim() }?.toMutableList() ?: mutableListOf()
         Log.v(TAG, "Track Names: $trackNames")
 
         // pass every string key that starts with -- to mpv
