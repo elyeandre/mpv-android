@@ -79,7 +79,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     private var rentryCookie = "" // urlencode this if using intent url
     private var rentryExternalID = "" // just received from intent and passed back in the rentry post
 
-    private var trackNames: List<String> = emptyList() //
+    private var trackNames = listOf<String>()
     /**
      * DO NOT USE THIS
      */
