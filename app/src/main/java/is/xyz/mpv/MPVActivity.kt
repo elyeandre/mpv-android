@@ -79,6 +79,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
     private var rentryCookie = "" // urlencode this if using intent url
     private var rentryExternalID = "" // just received from intent and passed back in the rentry post
 
+    private var trackNames: List<String> = emptyList() //
     /**
      * DO NOT USE THIS
      */
@@ -1076,8 +1077,8 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
             if (it > 0)
                 pushOption("start", "${it / 1000f}")
         }
-
-        val trackNames: List<String> = extras.getString("track-names")?.split(",")?.map { it.trim() } ?: emptyList()
+        // get all the track names if available
+        trackNames = extras.getString("track-names")?.split(",")?.map { it.trim() } ?: emptyList()
         Log.v(TAG, "Track Names: $trackNames")
 
         // pass every string key that starts with -- to mpv
