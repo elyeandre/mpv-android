@@ -1078,7 +1078,7 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 pushOption("start", "${it / 1000f}")
         }
         // get all the track names if available
-        trackNames = extras.getString("track-names")?.split(",")?.map { it.trim() }?.toMutableList() ?: mutableListOf()
+        trackNames = extras.getString("track-names")?.split(",")?.map { it.trim() }
         Log.v(TAG, "Track Names: $trackNames")
 
         // pass every string key that starts with -- to mpv
