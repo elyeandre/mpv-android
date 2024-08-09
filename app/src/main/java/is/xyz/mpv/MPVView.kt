@@ -236,7 +236,7 @@ internal class MPVView(context: Context, attrs: AttributeSet) : BaseMPVView(cont
             val lang = MPVLib.getPropertyString("track-list/$i/lang")
             val title = MPVLib.getPropertyString("track-list/$i/title")
 
-            val trackName = if (type == "sub" && trackNames.isNullOrEmpty()) {
+            val trackName = if (type == "sub" && trackNames.isNotEmpty()) {
             // Convert mpvId to zero-based index
                 val index = mpvId - 1
                 trackNames.getOrNull(index) ?: context.getString(R.string.ui_track_text, mpvId, (lang ?: "") + (title ?: ""))
