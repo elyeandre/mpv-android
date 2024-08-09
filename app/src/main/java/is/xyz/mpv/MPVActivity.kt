@@ -1077,6 +1077,9 @@ class MPVActivity : AppCompatActivity(), MPVLib.EventObserver, TouchGesturesObse
                 pushOption("start", "${it / 1000f}")
         }
 
+        val trackNames: List<String> = extras.getString("track-names")?.split(",")?.map { it.trim() } ?: emptyList()
+        Log.v(TAG, "Track Names: $trackNames")
+
         // pass every string key that starts with -- to mpv
         var intentOptions = mutableListOf<Pair<String, String>>()
         val allIntentOptions = extras.keySet().filter { it.startsWith("--") }
