@@ -236,16 +236,10 @@ internal class MPVView(context: Context, attrs: AttributeSet) : BaseMPVView(cont
             val lang = MPVLib.getPropertyString("track-list/$i/lang")
             val title = MPVLib.getPropertyString("track-list/$i/title")
 
-            if (type == "sub" && !trackNames.isEmpty()) {
-                 Log.v(TAG, "MPV ID: $mpvId")
-                 Log.v(TAG, "Language: $lang")
-                 Log.v(TAG, "Title: $title")
-            }
-
-            val trackName = if (type == "sub" && trackNames.isNotEmpty()) {
+            val trackName = if (type == "sub" && trackNames.isNullOrEmpty()) {
             // Convert mpvId to zero-based index
                 val index = mpvId - 1
-                trackNames.getOrNull(index) ?: context.getString(R.string.ui_track, mpvId)
+                trackNames.getOrNull(index) ?: context.getString(R.string.ui_track_text, mpvId, (lang ?: "") + (title ?: ""))
             } else if (!lang.isNullOrEmpty() && !title.isNullOrEmpty()) {
                 context.getString(R.string.ui_track_title_lang, mpvId, title, lang)
             } else if (!lang.isNullOrEmpty() || !title.isNullOrEmpty()) {
